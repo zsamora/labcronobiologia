@@ -14,7 +14,7 @@ TIMELAPSE = 1    # Time interval (in seconds)
 AUX = -1         # Auxiliar variable for counting missing pictures
 SEC = -1         # Second corresponding to actual photo
 camera = picamera.PiCamera()
-BUFFER = None    # Buffer for maximum amount of subfolders in Experiment
+BUFFER = []      # Buffer for maximum amount of subfolders in Experiment
 INDEX_DEL = 0    # Index for deletion of older directory
 
 def captureLoop():
@@ -62,10 +62,8 @@ def main():
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
         N_FOLDERS = DAYS + 1 # * 24 + 1
-        try:
+        if os.path.isdir(DIR):
             BUFFER = os.listdir(DIR).sort()
-        except:
-            BUFFER = []
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)

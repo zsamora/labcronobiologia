@@ -34,7 +34,7 @@ def captureLoop():
         if not os.path.isdir(DIR + capt_time[:-4] +"/"):
             raise
     try:
-        camera.capture(DIR + capt_time[:-4] +"/"+"f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+        camera.capture(DIR + "/" + capt_time[:-4] +"/"+"f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
         AUX = SEC
         # print("Saved " + capt_time)
     except Exception as ex:

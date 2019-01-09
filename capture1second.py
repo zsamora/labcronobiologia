@@ -17,16 +17,16 @@ def captureLoop():
     global capt_time
     global AUX
     global SEC
-    global FOLDERS
+    global N_FOLDERS
     capt_time = datetime.now().strftime(date_format)
     SEC = int(capt_time[-2:])
     if SEC < AUX:
         SEC += 60
     if SEC - AUX != 1:
-        print("Error en el dia "+capt_time[0:-6]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
+        print("Error en el dia "+capt_time[0:7]+", a las " + capt_time[10:13]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
     try:
         os.makedirs(DIR + capt_time[:-4] +"/")
-        FOLDERS -= 1
+        N_FOLDERS -= 1
     except OSError:
         if not os.path.isdir(DIR + capt_time[:-4] +"/"):
             raise

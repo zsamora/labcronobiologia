@@ -61,7 +61,7 @@ def main():
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
         print("Starting captures")
         # Set initial AUX
-        AUX = int(datetime.now().strftime('%S'))
+        AUX = int(datetime.now().strftime('%S'))-1
         # Call every TIMELAPSE seconds
         task.LoopingCall(captureLoop).start(TIMELAPSE)
         reactor.run()

@@ -76,7 +76,7 @@ def main():
         camera.exposure_mode = 'sports'
         # Wait 2 seconds, and until miliseconds is 0
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
-        print("Empezando la captura de fotografías: %s", datetime.now().strftime(date_format))
+        print("Empezando la captura de fotografias: %s", datetime.now().strftime(date_format))
         # Set initial AUX
         AUX = int(datetime.now().strftime('%S'))-1
         # Call every TIMELAPSE seconds

@@ -25,11 +25,16 @@ def captureLoop():
     SEC = int(capt_time[-2:])
     if ((AUX + 1) % 60) != SEC:
         print("Error en el dia "+capt_time[0:8]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " desde el segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
-    try:
-        os.makedirs(DIR + capt_time[:-4] +"/")
+    # If the directory isn't created
+    if not os.path.isdir(DIR + capt_time[:-4] +"/"):
         N_FOLDERS -= 1
-    except OSError:
-        if not os.path.isdir(DIR + capt_time[:-4] +"/"):
+        if N_FOLDERS == 0:
+            reactor.callFromThread(reactor.stop)
+            return
+        # Create directory
+        try:
+            os.makedirs(DIR + capt_time[:-4] +"/")
+        except OSError:
             raise
     try:
         camera.capture(DIR + capt_time[:-4] +"/"+"f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
@@ -52,7 +57,7 @@ def main():
         DAYS = int(sys.argv[1])
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
-        N_FOLDERS = DAYS #* 24 + 2
+        N_FOLDERS = DAYS#* 24 + 2
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)
@@ -65,9 +70,6 @@ def main():
         # Call every TIMELAPSE seconds
         task.LoopingCall(captureLoop).start(TIMELAPSE)
         reactor.run()
-        while N_FOLDERS != -1:
-            continue
-        reactor.stop()
 
 if __name__ == '__main__':
     main()

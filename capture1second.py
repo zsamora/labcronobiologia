@@ -14,6 +14,7 @@ AUX = -1         # Auxiliar variable for counting missing pictures
 SEC = -1         # Second corresponding to actual photo
 BUFFER = []      # Buffer for maximum amount of subfolders in Experiment
 INDEX_DEL = 0    # Index for deletion of older directory
+ERRORES = 0
 camera = picamera.PiCamera()
 
 def captureLoop():
@@ -23,12 +24,15 @@ def captureLoop():
     global FOLD
     global BUFFER
     global INDEX_DEL
+    global ERRORES
     capt_time = datetime.now().strftime(date_format)
     FOLD = capt_time[:-4]
     SEC = int(capt_time[-2:])
     # Actual photo is not the next photo expected
     if ((AUX + 1) % 60) != SEC:
-        print("Error en el dia %s, a las %s:%s, fotos perdidas del segundo %s al %s" % (capt_time[0:8],capt_time[-6:-4],capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
+        ERRORES = SEC - ((AUX + 1) % 60) + 1
+        print("Error total acumulados:", ERRORES)
+        #print("Error en el dia %s, a las %s:%s, fotos perdidas del segundo %s al %s" % (capt_time[0:8],capt_time[-6:-4],capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
     # The directory is not created
     if not os.path.isdir(DIR + FOLD):
         # Maximum size of folders, delete older
@@ -47,7 +51,7 @@ def captureLoop():
     try:
         camera.capture(DIR + FOLD +"/f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
         AUX = SEC
-        print("Objects collected:", gc.get_objects())
+        #print("Objects collected:", gc.get_objects())
         gc.collect()
         # print("Saved " + capt_time)
     except Exception as ex:
@@ -76,7 +80,7 @@ def main():
         camera.exposure_mode = 'sports'
         # Wait 2 seconds, and until miliseconds is 0
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
-        print("Empezando la captura de fotografias: %s", datetime.now().strftime(date_format))
+        print("Empezando la captura de fotografias: %s" % (datetime.now().strftime(date_format)))
         # Set initial AUX
         AUX = int(datetime.now().strftime('%S'))-1
         # Call every TIMELAPSE seconds

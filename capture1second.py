@@ -1,13 +1,14 @@
 import time, picamera, os, sys, os.path
 from datetime import datetime, timedelta
-from threading import Timer
+#from threading import Timer
+from twisted.internet import task, reactor
 
 # Global variables
 date_format = "%y_%m_%d_%H%M%S"
 DIR = "/home/pi/Camera/Data/"
 capt_time = None # Capture time
-DAYS = 15        # N° of days
-N_FOLDERS = 0    # N° of folders
+DAYS = 15        # N of days
+N_FOLDERS = 0    # N of folders
 TIMELAPSE = 1    # Time interval (in seconds)
 AUX = -1         # Auxiliar variable for counting missing pictures
 SEC = -1         # Second corresponding to actual photo
@@ -22,7 +23,7 @@ def captureLoop():
     if SEC < AUX:
         SEC += 60
     if SEC - AUX != 1:
-        print("Error en el día "+capt_time[0:-6]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
+        print("Error en el dia "+capt_time[0:-6]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
     try:
         os.makedirs(DIR + capt_time[:-4] +"/")
         FOLDERS -= 1
@@ -42,7 +43,7 @@ def main():
     global TIMELAPSE
     global DIR
     if (len(sys.argv[1:]) != 3):
-        print("Error de utilización: 'python capture1second.py days timelapse experiment_name'")
+        print("Error de utilizacion: 'python capture1second.py days timelapse experiment_name'")
     else:
         now = datetime.now()
         DAYS = int(sys.argv[1])

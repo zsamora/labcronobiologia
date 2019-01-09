@@ -58,7 +58,7 @@ def main():
         DAYS = int(sys.argv[1])
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
-        N_FOLDERS = DAYS#* 24 + 2
+        N_FOLDERS = DAYS + 1#* 24 + 2
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)

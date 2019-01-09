@@ -23,10 +23,8 @@ def captureLoop():
     global camera
     capt_time = datetime.now().strftime(date_format)
     SEC = int(capt_time[-2:])
-    if SEC < AUX:
-        SEC += 60
-    if SEC - AUX != 1:
-        print("Error en el dia "+capt_time[0:8]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
+    if ((AUX + 1) % 60) != SEC:
+        print("Error en el dia "+capt_time[0:8]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " desde el segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
     try:
         os.makedirs(DIR + capt_time[:-4] +"/")
         N_FOLDERS -= 1
@@ -46,6 +44,7 @@ def main():
     global TIMELAPSE
     global DIR
     global camera
+    global AUX
     if (len(sys.argv[1:]) != 3):
         print("Error de utilizacion: 'python capture1second.py days timelapse experiment_name'")
     else:
@@ -53,7 +52,7 @@ def main():
         DAYS = int(sys.argv[1])
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
-        N_FOLDERS = DAYS * 24 + 2
+        N_FOLDERS = DAYS #* 24 + 2
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)
@@ -61,6 +60,8 @@ def main():
         # Wait 2 seconds, and until miliseconds is 0
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
         print("Starting captures")
+        # Set initial AUX
+        AUX = int(datetime.now().strftime('%S'))
         # Call every TIMELAPSE seconds
         task.LoopingCall(captureLoop).start(TIMELAPSE)
         reactor.run()

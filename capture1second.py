@@ -12,12 +12,14 @@ N_FOLDERS = 0    # N of folders
 TIMELAPSE = 1    # Time interval (in seconds)
 AUX = -1         # Auxiliar variable for counting missing pictures
 SEC = -1         # Second corresponding to actual photo
+camera = picamera.PiCamera()
 
 def captureLoop():
     global capt_time
     global AUX
     global SEC
     global N_FOLDERS
+    global camera
     capt_time = datetime.now().strftime(date_format)
     SEC = int(capt_time[-2:])
     if SEC < AUX:
@@ -42,6 +44,7 @@ def main():
     global N_FOLDERS
     global TIMELAPSE
     global DIR
+    global camera
     if (len(sys.argv[1:]) != 3):
         print("Error de utilizacion: 'python capture1second.py days timelapse experiment_name'")
     else:
@@ -51,7 +54,6 @@ def main():
         DIR = DIR + sys.argv[3]
         N_FOLDERS = DAYS * 24 + 2
         # Initialize camera
-        camera = picamera.PiCamera()
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)
         camera.exposure_mode = 'sports'

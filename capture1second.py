@@ -8,7 +8,6 @@ from twisted.internet import task, reactor
 date_format = "%y_%m_%d_%H%M%S"
 DIR = "/home/pi/Camera/Data/"
 capt_time = None # Capture time
-DAYS = 15        # N of days
 N_FOLDERS = 0    # N of folders
 TIMELAPSE = 1    # Time interval (in seconds)
 AUX = -1         # Auxiliar variable for counting missing pictures
@@ -35,6 +34,8 @@ def captureLoop():
             os.rmdir(DIR + BUFFER[INDEX_DEL])
             BUFFER[INDEX_DEL] = capt_time[:-4]
             INDEX_DEL = (INDEX_DEL + 1) % N_FOLDERS
+        else:
+            BUFFER.append(capt_time[:-4])
         # Create directory
         try:
             os.makedirs(DIR + capt_time[:-4] +"/")
@@ -48,7 +49,6 @@ def captureLoop():
         print(ex)
 
 def main():
-    global DAYS
     global N_FOLDERS
     global TIMELAPSE
     global DIR
@@ -58,10 +58,9 @@ def main():
         print("Error de utilizacion: 'python capture1second.py max_days timelapse experiment_name'")
     else:
         now = datetime.now()
-        DAYS = int(sys.argv[1])
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
-        N_FOLDERS = DAYS + 1 # * 24 + 1
+        N_FOLDERS = int(sys.argv[1]) * 24 + 1 # Days * 24 hr + actual folder
         if os.path.isdir(DIR):
             BUFFER = os.listdir(DIR).sort()
         # Initialize camera

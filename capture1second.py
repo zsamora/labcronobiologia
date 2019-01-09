@@ -1,4 +1,4 @@
-import time, os, sys, os.path, collections, picamera
+import time, os, sys, os.path, collections, picamera, gc
 from datetime import datetime, timedelta
 from picamera import PiCamera
 from twisted.internet import task, reactor

@@ -61,7 +61,7 @@ def main():
         # Call every TIMELAPSE seconds
         task.LoopingCall(captureLoop).start(TIMELAPSE)
         reactor.run()
-        while FOLDERS != 0:
+        while N_FOLDERS != 0:
             continue
         reactor.stop()
 

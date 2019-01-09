@@ -28,6 +28,7 @@ def captureLoop():
     # If the directory isn't created
     if not os.path.isdir(DIR + capt_time[:-4] +"/"):
         N_FOLDERS -= 1
+        print("Number of folders left:", N_FOLDERS)
         if N_FOLDERS == 0:
             reactor.callFromThread(reactor.stop)
             return

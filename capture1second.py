@@ -1,47 +1,68 @@
-import time, picamera, os
-from datetime import datetime
-from twisted.internet import task, reactor
+import time, picamera, os, sys, os.path
+from datetime import datetime, timedelta
+from threading import Timer
 
-camera = picamera.PiCamera()
-camera.resolution = (200, 200)
-camera.color_effects = (128, 128)
-camera.exposure_mode = 'sports'
-timeout = 1.0 # Sixty seconds
-aux = 0
-start = False
+# Global variables
+date_format = "%y_%m_%d_%H%M%S"
+DIR = "/home/pi/Camera/Data/"
+capt_time = None # Capture time
+DAYS = 15        # N° of days
+N_FOLDERS = 0    # N° of folders
+TIMELAPSE = 1    # Time interval (in seconds)
+AUX = -1         # Auxiliar variable for counting missing pictures
+SEC = -1         # Second corresponding to actual photo
 
-def printTime():
-    global aux
-    capt_time = datetime.now().strftime('%y_%m_%d_%H%M%S')
-    min = int(capt_time[-4:-2])
-    sec = int(capt_time[-2:])
-    if not(start):
-        start = True
-    else:
-        if sec < aux:
-            sec += 60
-        dif = sec - aux
-    if dif != 1:
-        print("Error en el minuto:", min, "en el segundo", ((aux + 1) % 60), "al segundo ", ((aux + dif - 1) % 60))
-
-    fold_time = capt_time[:-4]
-    filename = "f" + capt_time + ".jpg"
-    directory = "/home/pi/Camera/Data/" + fold_time +"/"
+def captureLoop():
+    global capt_time
+    global AUX
+    global SEC
+    global FOLDERS
+    capt_time = datetime.now().strftime(date_format)
+    SEC = int(capt_time[-2:])
+    if SEC < AUX:
+        SEC += 60
+    if SEC - AUX != 1:
+        print("Error en el día "+capt_time[0:-6]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
     try:
-        os.makedirs(directory)
+        os.makedirs(DIR + capt_time[:-4] +"/")
+        FOLDERS -= 1
     except OSError:
-        if not os.path.isdir(directory):
+        if not os.path.isdir(DIR + capt_time[:-4] +"/"):
             raise
     try:
-        camera.capture(directory+filename,use_video_port=True,quality=15,thumbnail=None,bayer=False)
-        aux = sec
-#        print("Saved " + capt_time)
+        camera.capture(DIR + capt_time[:-4] +"/"+"f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+        AUX = SEC
+        # print("Saved " + capt_time)
     except Exception as ex:
-           print(ex)
-t = int(datetime.now().strftime('%f')[:-4])
-delay = (100-t)/100.0
-time.sleep(2+delay)
-print("Starting captures")
-l = task.LoopingCall(printTime)
-l.start(timeout) # call every  1 seconds
-reactor.run()
+        print(ex)
+
+def main():
+    global DAYS
+    global N_FOLDERS
+    global TIMELAPSE
+    global DIR
+    if (len(sys.argv[1:]) != 3):
+        print("Error de utilización: 'python capture1second.py days timelapse experiment_name'")
+    else:
+        now = datetime.now()
+        DAYS = int(sys.argv[1])
+        TIMELAPSE = int(sys.argv[2])
+        DIR = DIR + sys.argv[3]
+        N_FOLDERS = DAYS * 24 + 2
+        # Initialize camera
+        camera = picamera.PiCamera()
+        camera.resolution = (200, 200)
+        camera.color_effects = (128, 128)
+        camera.exposure_mode = 'sports'
+        # Wait 2 seconds, and until miliseconds is 0
+        time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
+        print("Starting captures")
+        # Call every TIMELAPSE seconds
+        task.LoopingCall(captureLoop).start(TIMELAPSE)
+        reactor.run()
+        while FOLDERS != 0:
+            continue
+        reactor.stop()
+
+if __name__ == '__main__':
+    main()

@@ -1,4 +1,4 @@
-import time, os, sys, os.path, collections
+import time, os, sys, os.path, collections, picamera
 from datetime import datetime, timedelta
 from picamera import PiCamera
 #from threading import Timer

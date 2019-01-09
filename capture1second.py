@@ -62,7 +62,7 @@ def main():
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
         N_FOLDERS = DAYS + 1 # * 24 + 1
-        BUFFER = os.listdir(DIR).sort():
+        BUFFER = os.listdir(DIR).sort()
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)

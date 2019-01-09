@@ -1,4 +1,4 @@
-import time, os, sys, os.path, picamera
+import time, os, sys, os.path, collections
 from datetime import datetime, timedelta
 from picamera import PiCamera
 #from threading import Timer
@@ -14,6 +14,8 @@ TIMELAPSE = 1    # Time interval (in seconds)
 AUX = -1         # Auxiliar variable for counting missing pictures
 SEC = -1         # Second corresponding to actual photo
 camera = picamera.PiCamera()
+BUFFER = None    # Buffer for maximum amount of subfolders in Experiment
+INDEX_DEL = 0    # Index for deletion of older directory
 
 def captureLoop():
     global capt_time
@@ -21,17 +23,18 @@ def captureLoop():
     global SEC
     global N_FOLDERS
     global camera
+    global BUFFER
+    global INDEX_DEL
     capt_time = datetime.now().strftime(date_format)
     SEC = int(capt_time[-2:])
     if ((AUX + 1) % 60) != SEC:
         print("Error en el dia "+capt_time[0:8]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " desde el segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
     # If the directory isn't created
     if not os.path.isdir(DIR + capt_time[:-4] +"/"):
-        N_FOLDERS -= 1
-        print("Number of folders left:", N_FOLDERS)
-        if N_FOLDERS == 0:
-            reactor.callFromThread(reactor.stop)
-            return
+        if len(BUFFER) == N_FOLDERS:
+            os.rmdir(DIR + BUFFER[INDEX_DEL])
+            BUFFER[INDEX_DEL] = capt_time[:-4]
+            INDEX_DEL = (INDEX_DEL + 1) % N_FOLDERS
         # Create directory
         try:
             os.makedirs(DIR + capt_time[:-4] +"/")
@@ -52,13 +55,14 @@ def main():
     global camera
     global AUX
     if (len(sys.argv[1:]) != 3):
-        print("Error de utilizacion: 'python capture1second.py days timelapse experiment_name'")
+        print("Error de utilizacion: 'python capture1second.py max_days timelapse experiment_name'")
     else:
         now = datetime.now()
         DAYS = int(sys.argv[1])
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
-        N_FOLDERS = DAYS + 1#* 24 + 2
+        N_FOLDERS = DAYS + 1 # * 24 + 1
+        BUFFER = os.listdir(DIR).sort():
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)

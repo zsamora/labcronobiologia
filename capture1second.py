@@ -26,7 +26,7 @@ def captureLoop():
     if SEC < AUX:
         SEC += 60
     if SEC - AUX != 1:
-        print("Error en el dia "+capt_time[0:7]+", a las " + capt_time[10:13]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
+        print("Error en el dia "+capt_time[0:8]+", a las " + capt_time[-6:-4]+":"+capt_time[-4:-2]+ " del segundo", ((AUX + 1) % 60), "al segundo ", ((SEC - 1) % 60))
     try:
         os.makedirs(DIR + capt_time[:-4] +"/")
         N_FOLDERS -= 1

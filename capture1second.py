@@ -34,7 +34,7 @@ def captureLoop():
         if not os.path.isdir(DIR + capt_time[:-4] +"/"):
             raise
     try:
-        camera.capture(DIR + "/" + capt_time[:-4] +"/"+"f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+        camera.capture(DIR + capt_time[:-4] +"/"+"f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
         AUX = SEC
         # print("Saved " + capt_time)
     except Exception as ex:
@@ -52,7 +52,7 @@ def main():
         now = datetime.now()
         DAYS = int(sys.argv[1])
         TIMELAPSE = int(sys.argv[2])
-        DIR = DIR + sys.argv[3]
+        DIR = DIR + sys.argv[3] + "/"
         N_FOLDERS = DAYS * 24 + 2
         # Initialize camera
         camera.resolution = (200, 200)

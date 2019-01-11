@@ -75,6 +75,7 @@ def main():
         N_FOLDERS = int(sys.argv[1]) + 1 # Days * 24 hr + actual folder
         if os.path.isdir(DIR):
             BUFFER = os.listdir(DIR).sort()
+        print(BUFFER)
         if len(BUFFER) > N_FOLDERS:
             i = 0
             for i in range(len(BUFFER) - N_FOLDERS):

@@ -1,4 +1,4 @@
-import time, os, sys, os.path, collections, picamera, gc
+import time, os, sys, os.path, collections, picamera, gc, shutil
 from datetime import datetime, timedelta
 from picamera import PiCamera
 from twisted.internet import task, reactor
@@ -37,7 +37,7 @@ def captureLoop():
         # Maximum size of folders, delete older
         if len(BUFFER) == N_FOLDERS:
             try:
-                os.rmdir(DIR + BUFFER[INDEX_DEL])
+                shutil.rmtree(DIR + BUFFER[INDEX_DEL])
                 BUFFER[INDEX_DEL] = FOLD
                 INDEX_DEL = (INDEX_DEL + 1) % N_FOLDERS
             except Exception as e:
@@ -81,7 +81,7 @@ def main():
         if len(BUFFER) > N_FOLDERS:
             i = 0
             for i in range(len(BUFFER) - N_FOLDERS):
-                os.rmdir(DIR + BUFFER[i])
+                shutil.rmtree(DIR + BUFFER[i])
             BUFFER = BUFFER[i+1:]
         # Deactivate automatic Garbage collector
         #gc.disable()

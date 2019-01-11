@@ -31,8 +31,8 @@ def captureLoop():
     # Actual photo is not the next expected photo
     if (SEC - (AUX + 1)) % 60 != 0:
         ERRORS += (SEC - (AUX + 1)) % 60
-        print("(Errores: %s) Fotos perdidas - \
-                Dia %s, a las %s:%s de los segundos del intervalo  [%s,%s]" %
+        print("(Errores: %s) Fotos perdidas -",
+                "Dia %s, a las %s:%s de los segundos del intervalo  [%s,%s]" %
                 (ERRORS, capt_time[0:8],capt_time[-6:-4],
                 capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
     # The directory is not created
@@ -70,8 +70,8 @@ def main():
     global AUX
     global BUFFER
     if (len(sys.argv[1:]) != 3):
-        print("Error de utilizacion: 'python capture1second.py \
-                max_days timelapse experiment_name'")
+        print("Error de utilizacion: 'python capture.py",
+                "max_days timelapse experiment_name'")
     else:
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
@@ -95,8 +95,8 @@ def main():
         camera.exposure_mode = 'sports'
         # Wait 2 seconds, and until miliseconds is 0
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
-        print("Empezando la captura de fotografias del dia: \
-                %s" % (datetime.now().strftime(date_format)))
+        print("Empezando la captura de fotografias del dia: %s" %
+                (datetime.now().strftime(date_format)))
         # Set initial AUX
         AUX = int(datetime.now().strftime('%S'))-1
         # Call every TIMELAPSE seconds

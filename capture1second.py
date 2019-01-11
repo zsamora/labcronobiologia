@@ -29,17 +29,19 @@ def captureLoop():
     FOLD = capt_time[:-4]
     SEC = int(capt_time[-2:])
     # Actual photo is not the next photo expected
-    if ((AUX + 1) % 60) != SEC:
-        ERRORES = SEC - ((AUX + 1) % 60) + 1
-        print("Error total acumulados:", ERRORES)
-        #print("Error en el dia %s, a las %s:%s, fotos perdidas del segundo %s al %s" % (capt_time[0:8],capt_time[-6:-4],capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
+    if (SEC - (AUX + 1)) % 60 != 0:
+        ERRORES += (SEC - (AUX + 1)) % 60
+        print("(Error acumulado: %s) Error en el dia %s, a las %s:%s, fotos perdidas del segundo %s al %s" % (ERRORES, capt_time[0:8],capt_time[-6:-4],capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
     # The directory is not created
     if not os.path.isdir(DIR + FOLD):
         # Maximum size of folders, delete older
         if len(BUFFER) == N_FOLDERS:
-            os.rmdir(DIR + BUFFER[INDEX_DEL])
-            BUFFER[INDEX_DEL] = FOLD
-            INDEX_DEL = (INDEX_DEL + 1) % N_FOLDERS
+            try:
+                os.rmdir(DIR + BUFFER[INDEX_DEL])
+                BUFFER[INDEX_DEL] = FOLD
+                INDEX_DEL = (INDEX_DEL + 1) % N_FOLDERS
+            except Exception as e:
+                print(e)
         else:
             BUFFER.append(FOLD)
         # Create directory
@@ -52,7 +54,7 @@ def captureLoop():
         camera.capture(DIR + FOLD +"/f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
         AUX = SEC
         #print("Objects collected:", gc.get_objects())
-        gc.collect()
+        #gc.collect()
         # print("Saved " + capt_time)
     except Exception as ex:
         print(ex)
@@ -73,7 +75,7 @@ def main():
         if os.path.isdir(DIR):
             BUFFER = os.listdir(DIR).sort()
         # Deactivate automatic Garbage collector
-        gc.disable()
+        #gc.disable()
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)

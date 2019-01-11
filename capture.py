@@ -31,7 +31,8 @@ def captureLoop():
     # Actual photo is not the next photo expected
     if (SEC - (AUX + 1)) % 60 != 0:
         ERRORES += (SEC - (AUX + 1)) % 60
-        print("(Error acumulado: %s) Error en el dia %s, a las %s:%s, fotos perdidas del segundo %s al %s" % (ERRORES, capt_time[0:8],capt_time[-6:-4],capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
+        print("(N° errores: %s) Fotos perdidas - Dia %s, a las %s:%s del intervalo [%s,%s]" %
+        (ERRORES, capt_time[0:8],capt_time[-6:-4],capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
     # The directory is not created
     if not os.path.isdir(DIR + FOLD):
         # Maximum size of folders, delete older
@@ -51,7 +52,8 @@ def captureLoop():
             raise
     # Capture photo
     try:
-        camera.capture(DIR + FOLD +"/f" + capt_time + ".jpg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+        camera.capture(DIR + FOLD +"/f" + capt_time + ".jpg",
+        use_video_port=True,quality=15,thumbnail=None,bayer=False)
         AUX = SEC
         #print("Objects collected:", gc.get_objects())
         #gc.collect()
@@ -72,12 +74,12 @@ def main():
         now = datetime.now()
         TIMELAPSE = int(sys.argv[2])
         DIR = DIR + sys.argv[3] + "/"
-        N_FOLDERS = int(sys.argv[1]) + 1 # Days * 24 hr + actual folder
+        N_FOLDERS = int(sys.argv[1]) * 24 + 2 # Days * 24 hr + actual folder + latest folder (in progress)
+        # If the experiment folder exists
         if os.path.isdir(DIR):
-            print("is dir")
+            # Get folders ordered by name
             BUFFER = sorted(os.listdir(DIR))
-            print(sorted(os.listdir(DIR)))
-        print(BUFFER)
+        # If the number of folders > maximum folders, delete oldest
         if len(BUFFER) > N_FOLDERS:
             i = 0
             for i in range(len(BUFFER) - N_FOLDERS):

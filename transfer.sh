@@ -1,5 +1,7 @@
+#!/bin/bash
+echo "Nombre del Experimento (vacio para transferir todos)"
+read EXP_NAME
 TMP=$(mktemp)
-time (nice -10 rsync -r pi@192.168.4.1:/home/pi/Camera/Data/19_01_04_14/ . ) 2>$TMP
-awk -F'[ ms]+' '/^real/ {print "copy time: "1000*$2"ms"}' $TMP
+time (nice -10 rsync -r pi@192.168.4.1:/home/pi/Camera/Data/$EXP_NAME . ) 2>$TMP
+awk -F'[ ms]+' '/^real/ {print "Tiempo de transferencia: "1000*$2"ms"}' $TMP
 rm $TMP
-rm f19_01_04_14*

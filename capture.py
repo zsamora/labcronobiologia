@@ -31,8 +31,7 @@ def captureLoop():
     # Actual photo is not the next expected photo
     if (SEC - (AUX + 1)) % 60 != 0:
         ERRORS += (SEC - (AUX + 1)) % 60
-        print("(Errores: %s) Fotos perdidas -", \
-                "Dia %s, a las %s:%s de los segundos del intervalo  [%s,%s]" %
+        print("(Errores: %s) Fotos perdidas - Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
                 (ERRORS, capt_time[0:8],capt_time[-6:-4],
                 capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
     # The directory is not created

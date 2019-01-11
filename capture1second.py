@@ -65,6 +65,7 @@ def main():
     global DIR
     global camera
     global AUX
+    global BUFFER
     if (len(sys.argv[1:]) != 3):
         print("Error de utilizacion: 'python capture1second.py max_days timelapse experiment_name'")
     else:
@@ -74,6 +75,11 @@ def main():
         N_FOLDERS = int(sys.argv[1]) + 1 # Days * 24 hr + actual folder
         if os.path.isdir(DIR):
             BUFFER = os.listdir(DIR).sort()
+        if len(BUFFER) > N_FOLDERS:
+            i = 0
+            for i in range(len(BUFFER) - N_FOLDERS):
+                os.rmdir(DIR + BUFFER[i])
+            BUFFER = BUFFER[i+1:]
         # Deactivate automatic Garbage collector
         #gc.disable()
         # Initialize camera

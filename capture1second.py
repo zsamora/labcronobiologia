@@ -76,7 +76,7 @@ def main():
         if os.path.isdir(DIR):
             print("is dir")
             BUFFER = os.listdir(DIR).sort()
-            print(os.listdir(DIR).sort())
+            print(os.listdir(DIR))
         print(BUFFER)
         if len(BUFFER) > N_FOLDERS:
             i = 0

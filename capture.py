@@ -1,8 +1,7 @@
-import time, os, sys, os.path, collections, picamera, gc, shutil, io, threading
+import time, os, sys, os.path, collections, picamera, gc, shutil
 from datetime import datetime, timedelta
 from picamera import PiCamera
 from twisted.internet import task, reactor
-from PIL import Image
 
 # Global variables
 date_format = "%y_%m_%d_%H%M%S"
@@ -17,42 +16,6 @@ BUFFER = []      # Buffer of subfolders in Experiment
 INDEX_DEL = 0    # Index for deletion of oldest directory
 ERRORS = 0       # Cumulative errors
 camera = picamera.PiCamera()
-
-lock = threading.Lock()
-pool = []
-
-class ImageProcessor(threading.Thread):
-    def __init__(self):
-        super(ImageProcessor, self).__init__()
-        self.stream = io.BytesIO()
-        self.event = threading.Event()
-        self.terminated = False
-        self.start() # Empieza un thread y llama a run()
-
-    def run(self):
-        while not self.terminated:
-            if self.event.wait(1):
-                try:
-                    self.stream.seek(0)
-                    capt_time = datetime.now().strftime(date_format)
-                    img = Image.open(self.stream)
-                    img.save("f" + capt_time + ".jpg")
-                finally:
-                    # Reset the stream and event
-                    self.stream.seek(0)
-                    self.stream.truncate()
-                    self.event.clear()
-                    # Return ourselves to the pool
-                    with lock:
-                        pool.append(self)
-
-def streams():
-    global pool
-    global lock
-    with lock:
-        processor = pool.pop()
-    yield processor.stream
-    processor.event.set()
 
 def captureLoop():
     global capt_time
@@ -105,8 +68,6 @@ def main():
     global camera
     global AUX
     global BUFFER
-    global pool
-    global lock
     if (len(sys.argv[1:]) != 3):
         print("Error de utilizacion: 'python capture.py",
                 "max_days timelapse experiment_name'")
@@ -127,25 +88,19 @@ def main():
             BUFFER = BUFFER[i+1:]
         # Deactivate automatic Garbage collector
         #gc.disable()
-        pool = [ImageProcessor() for i in range (4)]
         # Initialize camera
         camera.resolution = (200, 200)
-        #camera.framerate = 1
         camera.color_effects = (128, 128)
         camera.exposure_mode = 'sports'
-        camera.iso = 100
-        #camera.start_preview()
         # Wait 2 seconds, and until miliseconds is 0
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
         print("Empezando la captura de fotografias del dia: %s" %
                 (datetime.now().strftime(date_format)))
         # Set initial AUX
         AUX = int(datetime.now().strftime('%S'))-1
-        camera.capture_sequence(streams(), use_video_port=True)
         # Call every TIMELAPSE seconds
-        #task.LoopingCall(captureLoop).start(TIMELAPSE)
-        #reactor.run()
-
+        task.LoopingCall(captureLoop).start(TIMELAPSE)
+        reactor.run()
 
 if __name__ == '__main__':
     main()

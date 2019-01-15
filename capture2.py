@@ -54,7 +54,7 @@ class ImageProcessor(threading.Thread):
                         ERRORS += AUX - SEC
                         print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
                                 (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
-                                capt_time[-4:-2], ((SEC + 1) % 60), AUX)))
+                                capt_time[-4:-2], ((SEC + 1) % 60), AUX))
                     # The directory is not created
                     if not os.path.isdir(DIR + FOLD):
                         # Maximum size of folders, delete older

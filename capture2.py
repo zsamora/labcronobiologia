@@ -3,6 +3,7 @@ import time
 import threading
 import picamera
 from datetime import datetime, timedelta
+from PIL import Image
 
 # Create a pool of image processors
 done = False

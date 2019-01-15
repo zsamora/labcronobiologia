@@ -35,8 +35,6 @@ class ImageProcessor(threading.Thread):
                 try:
                     self.stream.seek(0)
                     capt_time = datetime.now().strftime(date_format)
-                    FOLD = capt_time[:-4]
-                    SEC = int(capt_time[-2:])
                     img = Image.open(self.stream)
                     img.save("f" + capt_time + ".jpg")
                 finally:

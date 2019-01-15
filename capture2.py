@@ -49,7 +49,7 @@ class ImageProcessor(threading.Thread):
                     self.stream.seek(0)
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
-                    AUX = int(datetime.now()[-2:])
+                    AUX = int(datetime.now().strftime(date_format)[-2:])
                     if AUX > SEC:
                         ERRORS += AUX - SEC
                         print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %

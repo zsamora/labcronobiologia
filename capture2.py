@@ -2,11 +2,13 @@ import io
 import time
 import threading
 import picamera
+from datetime import datetime, timedelta
 
 # Create a pool of image processors
 done = False
 lock = threading.Lock()
 pool = []
+date_format = "%y_%m_%d_%H%M%S"
 
 class ImageProcessor(threading.Thread):
     def __init__(self):
@@ -48,7 +50,7 @@ with picamera.PiCamera() as camera:
     # Set the framerate appropriately; too fast and the image processors
     # will stall the image pipeline and crash the script
     camera.framerate = 1
-    camera.start_preview()
+    #camera.start_preview()
     time.sleep(2)
     while True:
         camera.capture_sequence(streams(), use_video_port=True)

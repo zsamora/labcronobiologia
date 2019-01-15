@@ -139,7 +139,7 @@ def main():
         # Set initial AUX
         AUX = int(datetime.now().strftime('%S'))-1
         # Call every TIMELAPSE seconds
-        task.LoopingCall(camera.capture(captureLoop,use_video_port=True,quality=15,thumbnail=None,bayer=False)).start(TIMELAPSE)
+        task.LoopingCall(camera.capture(captureLoop,'jpeg',use_video_port=True,quality=15,thumbnail=None,bayer=False)).start(TIMELAPSE)
         reactor.run()
 
 if __name__ == '__main__':

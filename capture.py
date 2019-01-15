@@ -1,7 +1,8 @@
-import time, os, sys, os.path, collections, picamera, gc, shutil
+import time, os, sys, os.path, collections, picamera, gc, shutil, io, threading
 from datetime import datetime, timedelta
 from picamera import PiCamera
 from twisted.internet import task, reactor
+from PIL import Image
 
 # Global variables
 date_format = "%y_%m_%d_%H%M%S"
@@ -17,6 +18,42 @@ INDEX_DEL = 0    # Index for deletion of oldest directory
 ERRORS = 0       # Cumulative errors
 camera = picamera.PiCamera()
 
+lock = threading.Lock()
+pool = []
+
+class ImageProcessor(threading.Thread):
+    def __init__(self):
+        super(ImageProcessor, self).__init__()
+        self.stream = io.BytesIO()
+        self.event = threading.Event()
+        self.terminated = False
+        self.start() # Empieza un thread y llama a run()
+
+    def run(self):
+        while not self.terminated:
+            if self.event.wait(1):
+                try:
+                    self.stream.seek(0)
+                    capt_time = datetime.now().strftime(date_format)
+                    FOLD = capt_time[:-4]
+                    SEC = int(capt_time[-2:])
+                    img = Image.open(self.stream)
+                    img.save("f" + capt_time + ".jpg")
+                finally:
+                    # Reset the stream and event
+                    self.stream.seek(0)
+                    self.stream.truncate()
+                    self.event.clear()
+                    # Return ourselves to the pool
+                    with lock:
+                        pool.append(self)
+
+def streams():
+    with lock:
+        processor = pool.pop()
+    yield processor.stream
+    processor.event.set()
+
 def captureLoop():
     global capt_time
     global AUX
@@ -31,9 +68,9 @@ def captureLoop():
     # Actual photo is not the next expected photo
     if (SEC - (AUX + 1)) % 60 != 0:
         ERRORS += (SEC - (AUX + 1)) % 60
-        print("(%s Fotos perdidas) - Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
-                (ERRORS, capt_time[0:8],capt_time[-6:-4],
-                capt_time[-4:-2],((AUX + 1) % 60),((SEC - 1) % 60)))
+        print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
+                (ERRORS, capt_time[0:8], capt_time[-6:-4],
+                capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
     # The directory is not created
     if not os.path.isdir(DIR + FOLD):
         # Maximum size of folders, delete older
@@ -68,6 +105,8 @@ def main():
     global camera
     global AUX
     global BUFFER
+    global pool
+    global lock
     if (len(sys.argv[1:]) != 3):
         print("Error de utilizacion: 'python capture.py",
                 "max_days timelapse experiment_name'")
@@ -88,19 +127,85 @@ def main():
             BUFFER = BUFFER[i+1:]
         # Deactivate automatic Garbage collector
         #gc.disable()
+        pool = [ImageProcessor() for i in range (4)]
         # Initialize camera
         camera.resolution = (200, 200)
+        #camera.framerate = 1
         camera.color_effects = (128, 128)
         camera.exposure_mode = 'sports'
+        camera.iso = 100
+        camera.start_preview()
         # Wait 2 seconds, and until miliseconds is 0
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
         print("Empezando la captura de fotografias del dia: %s" %
                 (datetime.now().strftime(date_format)))
         # Set initial AUX
         AUX = int(datetime.now().strftime('%S'))-1
+        camera.capture_sequence(streams(), use_video_port=True)
         # Call every TIMELAPSE seconds
-        task.LoopingCall(captureLoop).start(TIMELAPSE)
-        reactor.run()
+        #task.LoopingCall(captureLoop).start(TIMELAPSE)
+        #reactor.run()
+
 
 if __name__ == '__main__':
     main()
+
+# Create a pool of image processors
+done = False
+lock = threading.Lock()
+pool = []
+
+class ImageProcessor(threading.Thread):
+    def __init__(self):
+        super(ImageProcessor, self).__init__()
+        self.stream = io.BytesIO()
+        self.event = threading.Event()
+        self.terminated = False
+        self.start()
+
+    def run(self):
+        # This method runs in a separate thread
+        global done
+        while not self.terminated:
+            if self.event.wait(1):
+                try:
+                    self.stream.seek(0)
+                    # Read the image and do some processing on it
+                    #Image.open(self.stream)
+                    #...
+                    #...
+                    # Set done to True if you want the script to terminate
+                    # at some point
+                    #done=True
+                finally:
+                    # Reset the stream and event
+                    self.stream.seek(0)
+                    self.stream.truncate()
+                    self.event.clear()
+                    # Return ourselves to the pool
+                    with lock:
+                        pool.append(self)
+
+def streams():
+    while not done:
+        with lock:
+            processor = pool.pop()
+        yield processor.stream
+        processor.event.set()
+
+with picamera.PiCamera() as camera:
+    pool = [ImageProcessor() for i in range (4)]
+    camera.resolution = (640, 480)
+    # Set the framerate appropriately; too fast and the image processors
+    # will stall the image pipeline and crash the script
+    camera.framerate = 10
+    camera.start_preview()
+    time.sleep(2)
+    camera.capture_sequence(streams(), use_video_port=True)
+
+# Shut down the processors in an orderly fashion
+while pool:
+    with lock:
+        processor = pool.pop()
+    processor.terminated = True
+    processor.join()

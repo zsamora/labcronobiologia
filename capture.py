@@ -36,7 +36,8 @@ class ImageProcessor(threading.Thread):
                     self.stream.seek(0)
                     capt_time = datetime.now().strftime(date_format)
                     img = Image.open(self.stream)
-                    img.save("f" + capt_time + ".jpg", ".JPG")
+                    img.save("f" + capt_time + ".jpg")
+                    img.close()
                 finally:
                     # Reset the stream and event
                     self.stream.seek(0)
@@ -104,7 +105,6 @@ def main():
     global AUX
     global BUFFER
     global pool
-    global lock
     if (len(sys.argv[1:]) != 3):
         print("Error de utilizacion: 'python capture.py",
                 "max_days timelapse experiment_name'")

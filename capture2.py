@@ -33,6 +33,7 @@ class ImageProcessor(threading.Thread):
         self.stream = io.BytesIO()
         self.event = threading.Event()
         self.terminated = False
+        self.capt_time = None
         self.start()
 
     def run(self):
@@ -41,17 +42,13 @@ class ImageProcessor(threading.Thread):
         while not self.terminated:
             if self.event.wait(1):
                 try:
-                    global capt_time
                     global AUX
-                    global SEC
-                    global FOLD
                     global BUFFER
                     global INDEX_DEL
                     global ERRORS
                     self.stream.seek(0)
-                    capt_time = datetime.now().strftime(date_format)
-                    FOLD = capt_time[:-4]
-                    SEC = int(capt_time[-2:])
+                    FOLD = self.capt_time[:-4]
+                    SEC = int(self.capt_time[-2:])
                     # Actual photo is not the next expected photo
                     #if (SEC - (AUX + 1)) % 60 != 0:
                         #ERRORS += (SEC - (AUX + 1)) % 60
@@ -78,8 +75,8 @@ class ImageProcessor(threading.Thread):
                     # Capture photo
                     try:
                         img = Image.open(self.stream)
-                        img.save(DIR + FOLD +"/f" + capt_time + ".jpg")
-                        print("saved",DIR + FOLD +"/f" + capt_time + ".jpg")
+                        img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
+                        print("saved",DIR + FOLD +"/f" + self.capt_time + ".jpg")
                         #AUX = SEC
                     except Exception as ex:
                         print(ex)
@@ -96,7 +93,10 @@ def captureLoop():
     global pool
     with lock:
         processor = pool.pop()
+    processor.capt_time = datetime.now().strftime(date_format)
+    print(processor.capt_time[-2:])
     camera.capture(processor.stream,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+    print(datetime.now().strftime("%S"))
     processor.event.set()
 
 def main():

@@ -79,6 +79,7 @@ class ImageProcessor(threading.Thread):
                     try:
                         img = Image.open(self.stream)
                         img.save(DIR + FOLD +"/f" + capt_time + ".jpg")
+                        print("saved",DIR + FOLD +"/f" + capt_time + ".jpg")
                         #AUX = SEC
                     except Exception as ex:
                         print(ex)

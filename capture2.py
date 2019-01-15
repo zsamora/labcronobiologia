@@ -37,7 +37,6 @@ class ImageProcessor(threading.Thread):
 
     def run(self):
         # This method runs in a separate thread
-        global done
         global pool
         while not self.terminated:
             if self.event.wait(1):
@@ -54,11 +53,11 @@ class ImageProcessor(threading.Thread):
                     FOLD = capt_time[:-4]
                     SEC = int(capt_time[-2:])
                     # Actual photo is not the next expected photo
-                    if (SEC - (AUX + 1)) % 60 != 0:
-                        ERRORS += (SEC - (AUX + 1)) % 60
-                        print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
-                                (ERRORS, capt_time[0:8], capt_time[-6:-4],
-                                capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
+                    #if (SEC - (AUX + 1)) % 60 != 0:
+                        #ERRORS += (SEC - (AUX + 1)) % 60
+                        #print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
+                                #(ERRORS, capt_time[0:8], capt_time[-6:-4],
+                                #capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
                     # The directory is not created
                     if not os.path.isdir(DIR + FOLD):
                         # Maximum size of folders, delete older
@@ -80,7 +79,7 @@ class ImageProcessor(threading.Thread):
                     try:
                         img = Image.open(self.stream)
                         img.save(DIR + FOLD +"/f" + capt_time + ".jpg")
-                        AUX = SEC
+                        #AUX = SEC
                     except Exception as ex:
                         print(ex)
                 finally:
@@ -92,7 +91,7 @@ class ImageProcessor(threading.Thread):
                     with lock:
                         pool.append(self)
 
-def streams():
+def captureLoop():
     global pool
     with lock:
         processor = pool.pop()
@@ -139,8 +138,9 @@ def main():
                 (datetime.now().strftime(date_format)))
         # Set initial AUX
         AUX = int(datetime.now().strftime('%S'))-1
-        while True:
-            camera.capture_sequence(streams(), use_video_port=True)
+        # Call every TIMELAPSE seconds
+        task.LoopingCall(camera.capture(captureLoop,use_video_port=True,quality=15,thumbnail=None,bayer=False)).start(TIMELAPSE)
+        reactor.run()
 
 if __name__ == '__main__':
     main()

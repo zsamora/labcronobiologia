@@ -142,6 +142,9 @@ def main():
         while True:
             camera.capture_sequence(streams(), use_video_port=True)
 
+if __name__ == '__main__':
+    main()
+
 # Shut down the processors in an orderly fashion
 while pool:
     with lock:

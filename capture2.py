@@ -48,7 +48,7 @@ class ImageProcessor(threading.Thread):
                     global ERRORS
                     self.stream.seek(0)
                     FOLD = self.capt_time[:-4]
-                    SEC = int(capt_time[-2:])
+                    SEC = int(self.capt_time[-2:])
                     AUX = int(datetime.now()[-2:])
                     if AUX > SEC:
                         ERRORS += AUX - SEC

@@ -48,13 +48,13 @@ class ImageProcessor(threading.Thread):
                     global ERRORS
                     self.stream.seek(0)
                     FOLD = self.capt_time[:-4]
-                    SEC = int(self.capt_time[-2:])
-                    # Actual photo is not the next expected photo
-                    #if (SEC - (AUX + 1)) % 60 != 0:
-                        #ERRORS += (SEC - (AUX + 1)) % 60
-                        #print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
-                                #(ERRORS, capt_time[0:8], capt_time[-6:-4],
-                                #capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
+                    SEC = int(capt_time[-2:])
+                    AUX = int(datetime.now()[-2:])
+                    if AUX > SEC:
+                        ERRORS += AUX - SEC
+                        print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
+                                (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
+                                capt_time[-4:-2], ((SEC + 1) % 60), AUX)))
                     # The directory is not created
                     if not os.path.isdir(DIR + FOLD):
                         # Maximum size of folders, delete older
@@ -94,9 +94,7 @@ def captureLoop():
     with lock:
         processor = pool.pop()
     processor.capt_time = datetime.now().strftime(date_format)
-    print(processor.capt_time[-2:])
     camera.capture(processor.stream,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
-    print(datetime.now().strftime("%S"))
     processor.event.set()
 
 def main():

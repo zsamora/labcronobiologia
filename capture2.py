@@ -86,7 +86,10 @@ class ImageProcessor(threading.Thread):
 def captureLoop():
     global pool
     with lock:
-        processor = pool.pop()
+        try:
+            processor = pool.pop()
+        except Exception as e:
+            print(e)
     processor.capt_time = datetime.now().strftime(date_format)
     camera.capture(processor.stream,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
     processor.event.set()

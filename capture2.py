@@ -46,16 +46,24 @@ class ImageProcessor(threading.Thread):
                     global ThreadLock
                     global dates
                     global streams
+                    global AUX
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
-                    AUX = int(datetime.now().strftime(date_format)[-2:])
-                    if AUX > SEC:
-                        ThreadLock.acquire()
-                        ERRORS += AUX - SEC
-                        ThreadLock.release()
-                        print("(Error total: %s) Dia %s, a las %s:%s entre los segundos [%s,%s]" %
-                                (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
-                                self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
+                    ThreadLock.acquire()
+                    if (SEC - (AUX + 1)) % 60 != 0:
+                        ERRORS += (SEC - (AUX + 1)) % 60
+                        print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
+                                (ERRORS, capt_time[0:8], capt_time[-6:-4],
+                                capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
+                    AUX = SEC
+                    ThreadLock.release()
+                    #if AUX > SEC:
+                    #ThreadLock.acquire()
+                    #ERRORS += AUX - SEC
+                    #ThreadLock.release()
+                    #print("(Error total: %s) Dia %s, a las %s:%s entre los segundos [%s,%s]" %
+                    #(ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
+                    #self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
                     # The directory is not created
                     if not os.path.isdir(DIR + FOLD):
                         # Maximum size of folders, delete older
@@ -78,7 +86,6 @@ class ImageProcessor(threading.Thread):
                         img = Image.open(self.picture)
                         img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
                         print("saved",DIR + FOLD +"/f" + self.capt_time + ".jpg")
-                        #AUX = SEC
                     except Exception as ex:
                         print(ex)
                 finally:
@@ -124,6 +131,7 @@ def main():
     global camera
     global BUFFER
     global pool
+    global AUX
     if (len(sys.argv[1:]) != 3):
         print("Error de utilizacion: 'python capture.py",
                 "max_days timelapse experiment_name'")
@@ -155,6 +163,7 @@ def main():
         print("Empezando la captura de fotografias del dia: %s" %
                 (datetime.now().strftime(date_format)))
         # Set initial AUX
+        AUX = int(datetime.now().strftime('%S'))-1
         # Call every TIMELAPSE seconds
         task.LoopingCall(captureLoop).start(TIMELAPSE)
         reactor.run()
@@ -164,7 +173,8 @@ if __name__ == '__main__':
 
 # Shut down the processors in an orderly fashion
 while pool:
-    with ThreadLock:
-        processor = pool.pop()
-    processor.terminated = True
-    processor.join()
+    ThreadLock.acquire()
+    for p in pool:
+        processor.terminated = True
+        processor.join()
+    ThreadLock.release()

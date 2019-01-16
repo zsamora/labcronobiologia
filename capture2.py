@@ -36,7 +36,6 @@ class ImageProcessor(threading.Thread):
 
     def run(self):
         # This method runs in a separate thread
-        global pool
         while not self.terminated:
             if self.event.wait(1):
                 try:
@@ -44,17 +43,16 @@ class ImageProcessor(threading.Thread):
                     global INDEX_DEL
                     global ERRORS
                     global ThreadLock
-                    global dates
-                    global streams
                     global AUX
+                    global pool
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
-                    ThreadLock.acquire()
-                    if (SEC - (AUX + 1)) % 60 != 0:
+                    if ((SEC - (AUX + 1)) % 60 != 0):
                         ERRORS += (SEC - (AUX + 1)) % 60
                         print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
                                 (ERRORS, capt_time[0:8], capt_time[-6:-4],
                                 capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
+                    ThreadLock.acquire()
                     AUX = SEC
                     ThreadLock.release()
                     #if AUX > SEC:
@@ -115,9 +113,9 @@ def captureLoop():
             processor = pool.pop()
             d = dates.popleft()
             s = streams.popleft()
+            ThreadLock.release()
             processor.capt_time = d
             processor.picture = s
-            ThreadLock.release()
             processor.event.set()
     except Exception as e:
         print(e)

@@ -91,8 +91,8 @@ class ImageProcessor(threading.Thread):
                             img = Image.open(self.picture)
                             img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
                             PHOTOS += 1
-                    except Exception as ex:
-                        print(ex)
+                        except Exception as ex:
+                            print(ex)
                     finally:
                         # Reset the stream and event
                         self.picture.seek(0)

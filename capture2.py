@@ -102,7 +102,6 @@ class ImageProcessor(threading.Thread):
                             ThreadLock.acquire()
                             pool.append(self)
                             ThreadLock.release()
-
 def captureLoop():
     global pool
     global ThreadLock
@@ -126,9 +125,7 @@ def captureLoop():
             processor.event.set()
     except Exception as e:
         print(e)
-
-
-
+        
 def main():
     global N_FOLDERS
     global TIMELAPSE

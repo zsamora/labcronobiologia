@@ -90,18 +90,22 @@ class ImageProcessor(threading.Thread):
 
 def captureLoop():
     global pool
-    ThreadLock.acquire()
-    dates.append(datetime.now().strftime(date_format))
-    s = io.BytesIO()
-    camera.capture(s,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
-    stream.append(s)
-    ThreadLock.release()
-    while len(pool) == 0:
-        continue
-    ThreadLock.acquire()
-    processor = pool.pop()
-    ThreadLock.release()
-    processor.event.set()
+    try:
+        ThreadLock.acquire()
+        dates.append(datetime.now().strftime(date_format))
+        s = io.BytesIO()
+        camera.capture(s,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+        stream.append(s)
+        ThreadLock.release()
+        while len(pool) == 0:
+            continue
+        ThreadLock.acquire()
+        processor = pool.pop()
+        ThreadLock.release()
+        processor.event.set()
+    except Exception as e:
+        print(e)
+
 
 
 def main():

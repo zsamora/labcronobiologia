@@ -16,11 +16,13 @@ BUFFER = []      # Buffer of subfolders in Experiment
 INDEX_DEL = 0    # Index for deletion of oldest directory
 ERRORS = 0       # Cumulative errors
 camera = picamera.PiCamera()
+dates = []       # Dates array for saving in threads
+streams = []     # Stream array for saving in threads
 
 # Create a pool of image processors
 done = False
 pool = []
-lock = threading.Lock()
+ThreadLock = threading.Lock()
 
 class ImageProcessor(threading.Thread):
     def __init__(self):
@@ -40,15 +42,14 @@ class ImageProcessor(threading.Thread):
                     global BUFFER
                     global INDEX_DEL
                     global ERRORS
-                    global lock
                     self.stream.seek(0)
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
                     AUX = int(datetime.now().strftime(date_format)[-2:])
                     if AUX > SEC:
-                        lock.acquire()
+                        ThreadLock.acquire()
                         ERRORS += AUX - SEC
-                        lock.release()
+                        ThreadLock.release()
                         print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
                                 (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
                                 self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
@@ -83,22 +84,25 @@ class ImageProcessor(threading.Thread):
                     self.stream.truncate()
                     self.event.clear()
                     # Return ourselves to the pool
-                    lock.acquire()
+                    ThreadLock.acquire()
                     pool.append(self)
-                    lock.release()
+                    ThreadLock.release()
 
 def captureLoop():
     global pool
-    global lock
-    lock.acquire()
-    try:
-        processor = pool.pop()
-    except Exception as e:
-        print(e)
-    lock.release()
-    processor.capt_time = datetime.now().strftime(date_format)
-    camera.capture(processor.stream,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+    ThreadLock.acquire()
+    dates.append(datetime.now().strftime(date_format))
+    s = io.BytesIO()
+    camera.capture(s,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+    stream.append(s)
+    ThreadLock.release()
+    while len(pool) == 0:
+        continue
+    ThreadLock.acquire()
+    processor = pool.pop()
+    ThreadLock.release()
     processor.event.set()
+
 
 def main():
     global N_FOLDERS
@@ -147,7 +151,7 @@ if __name__ == '__main__':
 
 # Shut down the processors in an orderly fashion
 while pool:
-    with lock:
+    with ThreadLock:
         processor = pool.pop()
     processor.terminated = True
     processor.join()

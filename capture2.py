@@ -109,19 +109,21 @@ def captureLoop():
     global stream
     try:
         ThreadLock.acquire()
-        s = io.BytesIO()
+        st = io.BytesIO()
         dates.append(datetime.now().strftime(date_format))
-        camera.capture(s,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
+        camera.capture(st,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
         stream.append(s)
         ThreadLock.release()
         if (len(pool) != 0) and (len(stream) != 0):
             ThreadLock.acquire()
             processor = pool.pop()
-            processor.dates = dates
-            processor.stream = stream
+            d = dates
+            s = stream
             dates = deque([])
             stream = deque([])
             ThreadLock.release()
+            processor.dates = d
+            processor.stream = s
             processor.event.set()
     except Exception as e:
         print(e)

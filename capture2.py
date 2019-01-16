@@ -112,7 +112,7 @@ def captureLoop():
         st = io.BytesIO()
         dates.append(datetime.now().strftime(date_format))
         camera.capture(st,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
-        stream.append(s)
+        stream.append(st)
         ThreadLock.release()
         if (len(pool) != 0) and (len(stream) != 0):
             ThreadLock.acquire()

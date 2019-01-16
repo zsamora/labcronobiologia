@@ -46,21 +46,16 @@ class ImageProcessor(threading.Thread):
                     global ThreadLock
                     global dates
                     global streams
-                    global AUX
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
-                    ThreadLock.acquire()
-                    #if AUX > SEC:
-                    #    ERRORS += AUX - SEC
-                    #    print("(Error total: %s) Dia %s, a las %s:%s entre los segundos [%s,%s]" %
-                    #            (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
-                    #            self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
-                    if (SEC - (AUX + 1)) % 60 != 0:
-                        ERRORS += (SEC - (AUX + 1)) % 60
-                        print("(Error total: %s - AUX: %s - SEC: %s) Dia %s, a las %s:%s entre los segundos [%s,%s]" %
-                                (ERRORS, capt_time[0:8], capt_time[-6:-4],
-                                capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60), AUX, SEC))
-                    ThreadLock.release()
+                    AUX = int(datetime.now().strftime(date_format)[-2:])
+                    if AUX > SEC:
+                        ThreadLock.acquire()
+                        ERRORS += AUX - SEC
+                        ThreadLock.release()
+                        print("(Error total: %s) Dia %s, a las %s:%s entre los segundos [%s,%s]" %
+                                (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
+                                self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
                     # The directory is not created
                     if not os.path.isdir(DIR + FOLD):
                         # Maximum size of folders, delete older
@@ -83,7 +78,7 @@ class ImageProcessor(threading.Thread):
                         img = Image.open(self.picture)
                         img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
                         print("saved",DIR + FOLD +"/f" + self.capt_time + ".jpg")
-                        AUX = SEC
+                        #AUX = SEC
                     except Exception as ex:
                         print(ex)
                 finally:
@@ -126,7 +121,6 @@ def main():
     global N_FOLDERS
     global TIMELAPSE
     global DIR
-    global AUX
     global camera
     global BUFFER
     global pool
@@ -161,7 +155,6 @@ def main():
         print("Empezando la captura de fotografias del dia: %s" %
                 (datetime.now().strftime(date_format)))
         # Set initial AUX
-        AUX = int(datetime.now().strftime('%S'))-1
         # Call every TIMELAPSE seconds
         task.LoopingCall(captureLoop).start(TIMELAPSE)
         reactor.run()

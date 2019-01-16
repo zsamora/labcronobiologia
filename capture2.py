@@ -42,6 +42,7 @@ class ImageProcessor(threading.Thread):
                     global BUFFER
                     global INDEX_DEL
                     global ERRORS
+                    global ThreadLock
                     self.stream.seek(0)
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
@@ -90,6 +91,7 @@ class ImageProcessor(threading.Thread):
 
 def captureLoop():
     global pool
+    global ThreadLock
     try:
         ThreadLock.acquire()
         dates.append(datetime.now().strftime(date_format))

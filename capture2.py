@@ -16,9 +16,10 @@ SEC = -1                # Actual photo second of the capture time
 BUFFER = []             # Buffer of subfolders in Experiment
 INDEX_DEL = 0           # Index for deletion of oldest directory
 ERRORS = 0              # Cumulative errors
+PHOTOS = 0
 camera = picamera.PiCamera()
 dates = deque([])       # Dates array for saving in threads
-streams = deque([])     # Stream array for saving in threads
+stream = deque([])     # Stream array for saving in threads
 
 # Create a pool of image processors
 done = False
@@ -30,6 +31,8 @@ class ImageProcessor(threading.Thread):
         super(ImageProcessor, self).__init__()
         self.event = threading.Event()
         self.terminated = False
+        self.dates = None
+        self.stream = None
         self.capt_time = None
         self.picture = None
         self.start()
@@ -38,84 +41,88 @@ class ImageProcessor(threading.Thread):
         # This method runs in a separate thread
         while not self.terminated:
             if self.event.wait(1):
-                try:
-                    global BUFFER
-                    global INDEX_DEL
-                    global ERRORS
-                    global ThreadLock
-                    global AUX
-                    global pool
-                    FOLD = self.capt_time[:-4]
-                    SEC = int(self.capt_time[-2:])
-                    if ((SEC - (AUX + 1)) % 60 != 0):
-                        ERRORS += (SEC - (AUX + 1)) % 60
-                        print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
-                                (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
-                                self.capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
-                    ThreadLock.acquire()
-                    AUX = SEC
-                    ThreadLock.release()
-                    #if AUX > SEC:
-                    #ThreadLock.acquire()
-                    #ERRORS += AUX - SEC
-                    #ThreadLock.release()
-                    #print("(Error total: %s) Dia %s, a las %s:%s entre los segundos [%s,%s]" %
-                    #(ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
-                    #self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
-                    # The directory is not created
-                    if not os.path.isdir(DIR + FOLD):
-                        # Maximum size of folders, delete older
-                        if len(BUFFER) == N_FOLDERS:
-                            try:
-                                shutil.rmtree(DIR + BUFFER[INDEX_DEL])
-                                BUFFER[INDEX_DEL] = FOLD
-                                INDEX_DEL = (INDEX_DEL + 1) % N_FOLDERS
-                            except Exception as e:
-                                print(e)
-                        else:
-                            BUFFER.append(FOLD)
-                        # Create directory
-                        try:
-                            os.makedirs(DIR + FOLD)
-                        except OSError:
-                            raise
-                    # Capture photo
+                while (len(self.stream) != 0):
                     try:
-                        img = Image.open(self.picture)
-                        img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
-                        print("saved",DIR + FOLD +"/f" + self.capt_time + ".jpg")
-                    except Exception as ex:
-                        print(ex)
-                finally:
-                    # Reset the stream and event
-                    self.picture.seek(0)
-                    self.picture.truncate()
-                    self.event.clear()
-                    # Return ourselves to the pool
-                    ThreadLock.acquire()
-                    pool.append(self)
-                    ThreadLock.release()
+                        global BUFFER
+                        global INDEX_DEL
+                        global ERRORS
+                        global ThreadLock
+                        global PHOTOS
+                        global AUX
+                        global pool
+                        self.capt_time = self.dates.popleft()
+                        self.picture = self.stream.popleft()
+                        FOLD = self.capt_time[:-4]
+                        SEC = int(self.capt_time[-2:])
+                        if ((SEC - (AUX + 1)) % 60 != 0):
+                            ERRORS += (SEC - (AUX + 1)) % 60
+                            print("(Error total: %s / %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
+                                    (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
+                                    self.capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
+                        ThreadLock.acquire()
+                        AUX = SEC
+                        ThreadLock.release()
+                        #if AUX > SEC:
+                        #ThreadLock.acquire()
+                        #ERRORS += AUX - SEC
+                        #ThreadLock.release()
+                        #print("(Error total: %s) Dia %s, a las %s:%s entre los segundos [%s,%s]" %
+                        #(ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
+                        #self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
+                        # The directory is not created
+                        if not os.path.isdir(DIR + FOLD):
+                            # Maximum size of folders, delete older
+                            if len(BUFFER) == N_FOLDERS:
+                                try:
+                                    shutil.rmtree(DIR + BUFFER[INDEX_DEL])
+                                    BUFFER[INDEX_DEL] = FOLD
+                                    INDEX_DEL = (INDEX_DEL + 1) % N_FOLDERS
+                                except Exception as e:
+                                    print(e)
+                            else:
+                                BUFFER.append(FOLD)
+                            # Create directory
+                            try:
+                                os.makedirs(DIR + FOLD)
+                            except OSError:
+                                raise
+                        # Save photo
+                        try:
+                            img = Image.open(self.picture)
+                            img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
+                            PHOTOS += 1
+                        except Exception as ex:
+                            print(ex)
+                        finally:
+                            # Reset the stream and event
+                            self.picture.seek(0)
+                            self.picture.truncate()
+                            self.event.clear()
+                            # Return ourselves to the pool
+                            ThreadLock.acquire()
+                            pool.append(self)
+                            ThreadLock.release()
 
 def captureLoop():
     global pool
     global ThreadLock
     global dates
-    global streams
+    global stream
     try:
         ThreadLock.acquire()
         s = io.BytesIO()
         dates.append(datetime.now().strftime(date_format))
         camera.capture(s,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
-        streams.append(s)
+        stream.append(s)
         ThreadLock.release()
-        while (len(pool) != 0) and (len(streams) != 0):
+        if (len(pool) != 0) and (len(stream) != 0):
             ThreadLock.acquire()
             processor = pool.pop()
-            d = dates.popleft()
-            s = streams.popleft()
+            processor.dates = dates
+            processor.stream = stream
+            dates = deque([])
+            stream = deque([])
             ThreadLock.release()
-            processor.capt_time = d
-            processor.picture = s
             processor.event.set()
     except Exception as e:
         print(e)
@@ -155,7 +162,7 @@ def main():
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)
         camera.exposure_mode = 'sports'
-        camera.framerate = 1
+        #camera.framerate = 1
         # Wait 2 seconds, and until miliseconds is 0
         time.sleep(2+(100-int(datetime.now().strftime('%f')[:-4]))/100.0)
         print("Empezando la captura de fotografias del dia: %s" %
@@ -172,7 +179,7 @@ if __name__ == '__main__':
 # Shut down the processors in an orderly fashion
 while pool:
     ThreadLock.acquire()
-    for p in pool:
-        processor.terminated = True
-        processor.join()
+    processor = pool.pop()
     ThreadLock.release()
+    processor.terminated = True
+    processor.join()

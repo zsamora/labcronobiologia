@@ -42,7 +42,6 @@ class ImageProcessor(threading.Thread):
         while not self.terminated:
             if self.event.wait(1):
                 while (len(self.stream) != 0):
-                    print("Hay algo")
                     try:
                         global BUFFER
                         global INDEX_DEL

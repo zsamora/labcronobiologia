@@ -2,22 +2,23 @@ import os, sys, os.path, collections, picamera, gc, shutil, io, time, threading
 from datetime import datetime, timedelta
 from PIL import Image
 from twisted.internet import task, reactor
+from collections import deque
 
 # Global variables
 date_format = "%y_%m_%d_%H%M%S"
 DIR = "/home/pi/Camera/Data/"
-capt_time = None # Capture time of the actual photo
-N_FOLDERS = 0    # N of folders
-TIMELAPSE = 1    # Time interval (in seconds)
-FOLD = ""        # Actual folder
-AUX = -1         # Actual photo second of the saving process
-SEC = -1         # Actual photo second of the capture time
-BUFFER = []      # Buffer of subfolders in Experiment
-INDEX_DEL = 0    # Index for deletion of oldest directory
-ERRORS = 0       # Cumulative errors
+capt_time = None        # Capture time of the actual photo
+N_FOLDERS = 0           # N of folders
+TIMELAPSE = 1           # Time interval (in seconds)
+FOLD = ""               # Actual folder
+AUX = -1                # Actual photo second of the saving process
+SEC = -1                # Actual photo second of the capture time
+BUFFER = []             # Buffer of subfolders in Experiment
+INDEX_DEL = 0           # Index for deletion of oldest directory
+ERRORS = 0              # Cumulative errors
 camera = picamera.PiCamera()
-dates = []       # Dates array for saving in threads
-streams = []     # Stream array for saving in threads
+dates = deque([])       # Dates array for saving in threads
+streams = deque([])     # Stream array for saving in threads
 
 # Create a pool of image processors
 done = False
@@ -31,6 +32,7 @@ class ImageProcessor(threading.Thread):
         self.event = threading.Event()
         self.terminated = False
         self.capt_time = None
+        self.picture = None
         self.start()
 
     def run(self):
@@ -43,6 +45,8 @@ class ImageProcessor(threading.Thread):
                     global INDEX_DEL
                     global ERRORS
                     global ThreadLock
+                    global dates
+                    global streams
                     self.stream.seek(0)
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
@@ -73,7 +77,7 @@ class ImageProcessor(threading.Thread):
                             raise
                     # Capture photo
                     try:
-                        img = Image.open(self.stream)
+                        img = Image.open(self.picture)
                         img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
                         print("saved",DIR + FOLD +"/f" + self.capt_time + ".jpg")
                         #AUX = SEC
@@ -92,19 +96,24 @@ class ImageProcessor(threading.Thread):
 def captureLoop():
     global pool
     global ThreadLock
+    global dates
+    global streams
     try:
         ThreadLock.acquire()
         dates.append(datetime.now().strftime(date_format))
         s = io.BytesIO()
         camera.capture(s,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
-        stream.append(s)
+        streams.append(s)
         ThreadLock.release()
-        while len(pool) == 0:
-            continue
-        ThreadLock.acquire()
-        processor = pool.pop()
-        ThreadLock.release()
-        processor.event.set()
+        while (len(pool) != 0) and (len(streams) != 0):
+            ThreadLock.acquire()
+            processor = pool.pop()
+            d = dates.popleft()
+            s = streams.popleft()
+            processor.capt_time = d
+            processor.picture = s
+            ThreadLock.release()
+            processor.event.set()
     except Exception as e:
         print(e)
 

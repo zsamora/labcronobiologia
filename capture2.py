@@ -91,17 +91,17 @@ class ImageProcessor(threading.Thread):
                             img = Image.open(self.picture)
                             img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
                             PHOTOS += 1
-                        except Exception as ex:
-                            print(ex)
-                        finally:
-                            # Reset the stream and event
-                            self.picture.seek(0)
-                            self.picture.truncate()
-                            self.event.clear()
-                            # Return ourselves to the pool
-                            ThreadLock.acquire()
-                            pool.append(self)
-                            ThreadLock.release()
+                    except Exception as ex:
+                        print(ex)
+                    finally:
+                        # Reset the stream and event
+                        self.picture.seek(0)
+                        self.picture.truncate()
+                        self.event.clear()
+                        # Return ourselves to the pool
+                        ThreadLock.acquire()
+                        pool.append(self)
+                        ThreadLock.release()
 def captureLoop():
     global pool
     global ThreadLock
@@ -125,7 +125,7 @@ def captureLoop():
             processor.event.set()
     except Exception as e:
         print(e)
-        
+
 def main():
     global N_FOLDERS
     global TIMELAPSE

@@ -56,8 +56,8 @@ class ImageProcessor(threading.Thread):
                         SEC = int(self.capt_time[-2:])
                         if ((SEC - (AUX + 1)) % 60 != 0):
                             ERRORS += (SEC - (AUX + 1)) % 60
-                            print("(Error total: %s / %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
-                                    (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
+                            print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
+                                    (ERRORS self.capt_time[0:8], self.capt_time[-6:-4],
                                     self.capt_time[-4:-2], ((AUX + 1) % 60), ((SEC - 1) % 60)))
                         ThreadLock.acquire()
                         AUX = SEC

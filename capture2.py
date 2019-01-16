@@ -40,12 +40,15 @@ class ImageProcessor(threading.Thread):
                     global BUFFER
                     global INDEX_DEL
                     global ERRORS
+                    global lock
                     self.stream.seek(0)
                     FOLD = self.capt_time[:-4]
                     SEC = int(self.capt_time[-2:])
                     AUX = int(datetime.now().strftime(date_format)[-2:])
                     if AUX > SEC:
+                        lock.acquire()
                         ERRORS += AUX - SEC
+                        lock.release()
                         print("(Error total: %s) Dia %s, a las %s:%s del intervalo de segundos [%s,%s]" %
                                 (ERRORS, self.capt_time[0:8], self.capt_time[-6:-4],
                                 self.capt_time[-4:-2], ((SEC + 1) % 60), AUX))
@@ -80,16 +83,19 @@ class ImageProcessor(threading.Thread):
                     self.stream.truncate()
                     self.event.clear()
                     # Return ourselves to the pool
-                    with lock:
-                        pool.append(self)
+                    lock.acquire()
+                    pool.append(self)
+                    lock.release()
 
 def captureLoop():
     global pool
-    with lock:
+    global lock
+    lock.acquire()
         try:
             processor = pool.pop()
         except Exception as e:
             print(e)
+    lock.release()
     processor.capt_time = datetime.now().strftime(date_format)
     camera.capture(processor.stream,"jpeg",use_video_port=True,quality=15,thumbnail=None,bayer=False)
     processor.event.set()

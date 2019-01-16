@@ -42,6 +42,7 @@ class ImageProcessor(threading.Thread):
         while not self.terminated:
             if self.event.wait(1):
                 while (len(self.stream) != 0):
+                    print("Hay algo")
                     try:
                         global BUFFER
                         global INDEX_DEL
@@ -115,10 +116,10 @@ def captureLoop():
         stream.append(st)
         ThreadLock.release()
         if (len(pool) != 0) and (len(stream) != 0):
-            ThreadLock.acquire()
-            processor = pool.pop()
             d = dates
             s = stream
+            ThreadLock.acquire()
+            processor = pool.pop()
             dates = deque([])
             stream = deque([])
             ThreadLock.release()

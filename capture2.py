@@ -92,6 +92,7 @@ class ImageProcessor(threading.Thread):
                             img = Image.open(self.picture)
                             img.save(DIR + FOLD +"/f" + self.capt_time + ".jpg")
                             PHOTOS += 1
+                            print("Guardada la foto: "+ self.capt_time + ", fotos totales: %s" % (PHOTOS))
                         except Exception as ex:
                             print(ex)
                     finally:

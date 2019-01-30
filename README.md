@@ -2,8 +2,8 @@
 
 ### Overview:
 The code in the file `capture.py` was created for the purpose of taking one picture
-each second to get a real time measure of the movement of an object. This is planned
-as a system that works like a real-time system, working with threads and with
+each second to get a real time measure of the movement of an object. This is designed
+as a real-time system, working with threads and with
 different optimizations in order to take as less as possible in the process of
 saving the picture, so we can have a capture the closest possible to the real clock time,
 so the photo will represent the second obtained. Everything is tested and developed in

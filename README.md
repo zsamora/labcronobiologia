@@ -3,7 +3,7 @@
 ### Overview:
 
 The code in the file `capture.py` was created for the purpose of taking one picture
-each second (or any timelapse chosed) to get a real time measure of the movement
+each second (or any timelapse) to get a real time measure of the movement
 of an object. This was designed as a real-time system, working with threads and with
 different optimizations so we can have a capture as close as possible to the real clock time,
 so the photo will really represent the second recorded. Everything is tested and developed in
@@ -55,4 +55,6 @@ pretty good with a rate of 5 photos lost per hour, with 1 second timelapse.
 
 ### Credits and license:
 
-This work is under the GPL License (GPLv3), 2019
+This work took place in 2019, and is licensed under GNU General Public License (GPLv3). It was inspired
+by the following links, so we hope you can re-use it, and comment us on any idea
+or problem that you found that could improve it.

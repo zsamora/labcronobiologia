@@ -6,7 +6,7 @@ from collections import deque
 
 # Global variables
 date_format = "%y_%m_%d_%H%M%S"
-DIR = "/home/pi/Camera/Data/"
+DIR = "/home/pi/Camera/Data/" # Directory of photos in the Raspberry Pi
 capt_time = None        # Capture time of the actual photo
 N_FOLDERS = 0           # N of folders
 TIMELAPSE = 1           # Time interval (in seconds)
@@ -16,7 +16,8 @@ SEC = -1                # Actual photo second of the capture time
 BUFFER = []             # Buffer of subfolders in Experiment
 INDEX_DEL = 0           # Index for deletion of oldest directory
 ERRORS = 0              # Cumulative errors
-PHOTOS = 0
+PHOTOS = 0              # Total photos
+N_THREADS = 1           # N of threads used
 camera = picamera.PiCamera()
 dates = deque([])       # Dates array for saving in threads
 stream = deque([])     # Stream array for saving in threads
@@ -150,7 +151,7 @@ def main():
             BUFFER = BUFFER[i+1:]
         # Deactivate automatic Garbage collector
         #gc.disable()
-        pool = [ImageProcessor() for i in range (1)]
+        pool = [ImageProcessor() for i in range (N_THREADS)]
         # Initialize camera
         camera.resolution = (200, 200)
         camera.color_effects = (128, 128)

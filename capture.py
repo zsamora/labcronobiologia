@@ -5,27 +5,24 @@ from twisted.internet import task, reactor
 from collections import deque
 
 # Global variables
-date_format = "%y_%m_%d_%H%M%S"
-DIR = "/home/pi/Camera/Data/" # Directory of photos in the Raspberry Pi
-capt_time = None        # Capture time of the actual photo
-N_FOLDERS = 0           # N of folders
-TIMELAPSE = 1           # Time interval (in seconds)
-FOLD = ""               # Actual folder
-AUX = -1                # Actual photo second of the saving process
-SEC = -1                # Actual photo second of the capture time
-BUFFER = []             # Buffer of subfolders in Experiment
-INDEX_DEL = 0           # Index for deletion of oldest directory
-ERRORS = 0              # Cumulative errors
-PHOTOS = 0              # Total photos
-N_THREADS = 1           # N of threads used
-camera = picamera.PiCamera()
-dates = deque([])       # Dates array for saving in threads
-stream = deque([])     # Stream array for saving in threads
-
-# Create a pool of image processors
-done = False
-pool = []
-ThreadLock = threading.Lock()
+date_format = "%y_%m_%d_%H%M%S" # Date format yy_mm_dd_HHMMSS
+DIR = "/home/pi/Camera/Data/"   # Directory of photos in the Raspberry Pi
+camera = picamera.PiCamera()    # PiCamera
+ThreadLock = threading.Lock()   # Global lock
+capt_time = None                # Capture time of the actual photo
+N_FOLDERS = 0                   # N of folders
+TIMELAPSE = 1                   # Time interval (in seconds)
+FOLD = ""                       # Actual folder
+AUX = -1                        # Actual photo second of the saving process
+SEC = -1                        # Actual photo second of the capture time
+BUFFER = []                     # Buffer of subfolders in Experiment
+INDEX_DEL = 0                   # Index for deletion of oldest directory
+ERRORS = 0                      # Cumulative errors
+PHOTOS = 0                      # Total photos
+N_THREADS = 1                   # N of threads used
+dates = deque([])               # Dates array to process in threads
+stream = deque([])              # Stream array to process in threads
+pool = []                       # Processor array
 
 class ImageProcessor(threading.Thread):
     def __init__(self):

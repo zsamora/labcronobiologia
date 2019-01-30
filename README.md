@@ -55,6 +55,9 @@ pretty good with a rate of 5 photos lost per hour, with 1 second timelapse.
 
 ### Credits and license:
 
-This work took place in 2019, and is licensed under GNU General Public License (GPLv3). It was inspired
-by the following links, so we hope you can re-use it, and comment us on any idea
+This work took place in 2019, and is licensed under GNU General Public License (GPLv3).
+It was inspired by the following links, so we hope you can re-use it, and comment us on any idea
 or problem that you found that could improve it.
+
+https://picamera.readthedocs.io/en/release-1.3/recipes2.html#rapid-capture-and-processing
+https://www.tutorialspoint.com/python/python_multithreading.htm

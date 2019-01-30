@@ -59,5 +59,5 @@ This work took place in 2019, and is licensed under GNU General Public License (
 It was inspired by the following links, so we hope you can re-use it, and comment us on any idea
 or problem that you found that could improve it.
 
-https://picamera.readthedocs.io/en/release-1.3/recipes2.html#rapid-capture-and-processing
-https://www.tutorialspoint.com/python/python_multithreading.htm
+* https://picamera.readthedocs.io/en/release-1.3/recipes2.html#rapid-capture-and-processing
+* https://www.tutorialspoint.com/python/python_multithreading.htm

@@ -1,4 +1,4 @@
-## Timelapse capture with Raspberry Pi in Python
+## Timelapse image capture in Raspberry Pi (Python + R Studio)
 
 ### Overview:
 
